@@ -9,17 +9,13 @@ master = os.path.abspath(os.path.join(__file__, '..', '..'))
 sys.path.append(master)
 
 
-from sandbox import camera_engine, recognise_engine
+from sandbox import recognise_engine
 
 
 def start_profiler(profiler_kill,current_front, profile_change_to):
     print("Profiler in.")
     img_queue = multiprocessing.Queue(maxsize=1)
     kill_queue = multiprocessing.Queue(maxsize=5)
-
-    # Camera start
-    camera_thread = threading.Thread(target=camera_engine.start_engine, args=(img_queue, kill_queue))
-    camera_thread.start()
 
     # Recognizer
     names_queue = multiprocessing.Queue(maxsize=5)
@@ -51,8 +47,5 @@ def start_profiler(profiler_kill,current_front, profile_change_to):
 
     recogniser_process.join()
     print("recogniser_process out")
-
-    camera_thread.join()
-    print("camera_thread out")
 
     print("Profiler out.")

@@ -1,6 +1,21 @@
+import multiprocessing
 import os
+import queue
+import traceback
 
 import face_recognition
+import numpy
+import requests
+import time
+
+import sys
+from PIL import Image
+from io import BytesIO
+
+master = os.path.abspath(os.path.join(__file__, '..', '..'))
+sys.path.append(master)
+
+from sandbox import camera_ip
 
 
 def load_faces_from_db():
@@ -23,26 +38,48 @@ def load_faces_from_db():
     return face_names_local, decoded_faces
 
 
-def start_engine(names_queue, img_queue, kill_queue):
+def start_engine(names_queue, kill_queue):
     face_names, decoded_faces = load_faces_from_db()
     print("Recognise engine in.")
+    url_text = camera_ip.get_url()
+    count = 0
+    t = 0
     while True:
+        tm = time.time()
         if kill_queue.qsize():
             print("Recognise engine out.")
             break
         try:
-            img = img_queue.get(timeout=0.3)
-            face_encodings = face_recognition.face_encodings(img)
-            for face_encoding in face_encodings:
-                res_raw = face_recognition.compare_faces(list(decoded_faces.values()), face_encoding)
-                if len(res_raw) > 0:
-                    res = zip(res_raw, face_names)
-                    for i, j in res:
-                        if i:
-                            print("Camera Engine : ", j)
-                            names_queue.put(j)
-                    if not any(res_raw):
-                        print("Camera Engine : Unknown")
-                        names_queue.put("Unknown")
+            response = requests.get(url_text)
+            img = Image.open(BytesIO(response.content))
+            img = numpy.array(img)
+            if img.any():
+                face_encodings = face_recognition.face_encodings(img)
+                for face_encoding in face_encodings:
+                    res_raw = face_recognition.compare_faces(list(decoded_faces.values()), face_encoding)
+                    if len(res_raw) > 0:
+                        res = zip(res_raw, face_names)
+                        for i, j in res:
+                            if i:
+                                print("Camera Engine : ", j)
+                                names_queue.put(j)
+                        if not any(res_raw):
+                            print("Camera Engine : Unknown")
+                            names_queue.put("Unknown")
         except:
+            traceback.print_exc()
             print("Some problem in recognising process")
+        t += (time.time() - tm)
+        count += 1
+        if count>3:
+            break
+        print("Count : {}".format(count))
+    print("avg:{}".format(t / count))
+
+
+if __name__ == '__main__':
+    y=time.time()
+    kq = multiprocessing.Queue()
+    q = multiprocessing.Queue()
+    print("{} going in".format(time.time()-y))
+    start_engine(kq, q)

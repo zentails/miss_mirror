@@ -29,13 +29,13 @@ def get_a_name(dir):
             break
     return str(rand)
 
-
 def get_photo():
     url = camera_ip.get_url()
     dir_path = os.path.dirname(os.path.realpath(__file__))
     dropbox = dir_path + "/dropbox/"
     unique_name = get_a_name(dropbox) + '.jpg'
     photo_path = dropbox + unique_name
+    print(photo_path + url)
     urllib.request.urlretrieve(url, photo_path)
     return photo_path, unique_name
 
