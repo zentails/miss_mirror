@@ -1,0 +1,5 @@
+*.pyc 
+__*
+user.key
+firebase.conf
+.idea/*
