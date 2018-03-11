@@ -20,10 +20,11 @@ def get_face_cam_url():
     :return: returns the link of changing images that'll be used as video
              for our case it's from ipwebcam an android application used as replacement of raspberry cam
     """
-    url = 'http://192.168.1.104:8080/shot.jpg'  # home
+    # url = 'http://192.168.1.104:8080/shot.jpg'  # robin
+    url = 'http://192.168.1.105:8080/shot.jpg'  # platipus
     # url='http://192.168.43.220:8080/shot.jpg' #home
     # url='http://192.168.20.52:8080/shot.jpg'
-    # url='http://192.168.43.1:8080/shot.jpg' #mobile hotspot
+    # url='http://192.168.43.1:8080/shot.jpg' #robin hotspot
     # url='http://192.168.28.115:8080/shot.jpg' #mobile hotspot shubham
     return url
 
@@ -47,10 +48,10 @@ def get_a_name(directory_name):
     return str(rand)
 
 
-def get_photo(self):
+def get_photo():
     url = get_face_cam_url()
     dropbox = dir_path + "/dropbox/"
-    unique_name = self.get_a_name("/dropbox/") + '.jpg'
+    unique_name = get_a_name("/dropbox/") + '.jpg'
     photo_path = dropbox + unique_name
     print(photo_path + url)
     urllib.request.urlretrieve(url, photo_path)

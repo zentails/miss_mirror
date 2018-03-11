@@ -35,7 +35,7 @@ class Mirbase(metaclass=mirtools.Singleton):
                 self.user = self.generate_firebase_user()
             except:
                 traceback.print_exc()
-                print("Couldnt initialize firebase")
+                print("Couldn't initialize firebase")
 
     def testme(self, take):
         self.take = take
@@ -92,7 +92,7 @@ class Mirbase(metaclass=mirtools.Singleton):
                 return self.auth.sign_in_with_email_and_password(email_id, password)
             except:
                 traceback.print_exc()
-                print("couldnt create user ")
+                print("couldn't create user ")
 
     # Mirbase Tools
 
