@@ -1,3 +1,4 @@
+import multiprocessing
 import threading
 
 import time
@@ -6,11 +7,26 @@ import mirtools
 import recogniser
 
 
-def printWhenGet(q, m):
-    print(">>printMan_{} in".format(m))
+def printMan(m, t):
     while True:
-        t = time.time()
-        print("--##{}____{}____{}".format(m, time.time() - t, q.get(block=True)))
+        print("{}_{}".format(t, m))
+        time.sleep(m)
+
+
+def printWhenGetCurrent(q):
+    print(">>printManCurrent in")
+    # a = 1
+    while True:
+        # t = time.time()
+        print("--##________{}________________".format(q.get(block=True)))
+        # t = a + (time.time() - t)
+        # a = t / 2
+
+
+def printWhenGetProfile(q):
+    print(">>printManProfile in")
+    while True:
+        print("--##------------>{}".format(q.get(block=True)))
 
 
 if __name__ == '__main__':
@@ -24,12 +40,14 @@ if __name__ == '__main__':
     rec_processes = rec_obj.start_recogniser()
     # print(mirtools.get_photo())
 
-    threading.Thread(target=printWhenGet, args=(current_front_q, "current")).start()
-    threading.Thread(target=printWhenGet, args=(profile_change_to_q, "profile")).start()
+    threading.Thread(target=printWhenGetCurrent, args=(current_front_q,)).start()
+    threading.Thread(target=printWhenGetProfile, args=(profile_change_to_q,)).start()
+    threading.Thread(target=printMan, args=(2, "____________________________-_______________________")).start()
 
     # rec_process.start()
     s = input("say")
     if s == "q":
         for rec_process in rec_processes:
             rec_process.terminate()
+        multiprocessing.current_process().terminate()
     print("________MASTER DOWN________")
