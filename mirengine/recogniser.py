@@ -2,13 +2,12 @@ import multiprocessing
 import os
 import queue
 import threading
-import traceback
+import time
+from collections import Counter
 from io import BytesIO
 
 import face_recognition
-import time
 from PIL import Image
-from collections import Counter
 from numpy import array as numpy_array
 from requests import get as requests_get
 
@@ -30,7 +29,7 @@ def load_faces_from_db():
             image = face_recognition.load_image_file(img_full_path)
             image_face_encoding = face_recognition.face_encodings(image)[0]
             decoded_faces[filename[:-4]] = image_face_encoding
-    print('[]{} faces from db loaded.'.format(len(decoded_faces)))
+    print('[{}] faces from db loaded.'.format(len(decoded_faces)))
     face_names_local = decoded_faces.keys()
     return face_names_local, decoded_faces
 
@@ -40,7 +39,7 @@ class Recogniser:
         self.photo_engine_thread = threading.Thread(target=self.photo_engine)
         self.profiler_thread = threading.Thread(target=self.profiler)
         self.reload_thead = threading.Thread(target=self.reload_faces)
-        self.img_for_processing_q = multiprocessing.Queue(maxsize=4)
+        self.img_for_processing_q = multiprocessing.Queue(maxsize=1)
         self.reload_face_sig_q = multiprocessing.Queue(maxsize=1)
         self.profile_change_to_q = multiprocessing.Queue(maxsize=1)
         self.current_front_q = multiprocessing.Queue(maxsize=1)
@@ -48,6 +47,7 @@ class Recogniser:
         self.face_names, self.decoded_faces = load_faces_from_db()
 
     def photo_engine(self):
+        print(">>Photo Engine in")
         url_text = mirtools.get_face_cam_url()
         i = 0
         while True:
@@ -55,21 +55,33 @@ class Recogniser:
                 response = requests_get(url_text)
                 img = Image.open(BytesIO(response.content))
                 img = numpy_array(img)
-                print("++++++putting img[{}]".format(i))
-                time.sleep(2)
+                if i % 20 == 0:
+                    print("++++++putting img[{}]".format(i))
+                # time.sleep(1)
                 self.img_for_processing_q.put((img, i), timeout=0.1)
                 i += 1
-            except:
+            except queue.Full:
+                try:
+                    self.img_for_processing_q.get(timeout=0.1)
+                except queue.Empty:
+                    print("Story time : A recogniser swiped a photo under my nose. F$$k!")
                 # traceback.print_exc()
-                # print("img_Q_Q_FULL")
-                self.img_for_processing_q.get()
+                # print("-------img_Q_FULL")
+                if i > 1000:
+                    i = 0
+            except:
+                print("$$$$$ is cam on? 'll wait for 3 secs. btw ip is [{}]".format(url_text))
+                time.sleep(3)
 
     def engine(self):
         # face_names, decoded_faces = load_faces_from_db()
         print(">>{}  in.".format(multiprocessing.current_process().name))
+        # t = time.time()
         while True:
             try:
-                # print("{}__waiting".format(multiprocessing.current_process().name))
+                # time.sleep(random.choice(wait))
+                # print("{}__took {} time".format(multiprocessing.current_process().name, time.time() - t))
+                # t = time.time()
                 img, i = self.img_for_processing_q.get(block=True)
                 # print("{}__is processing img{}".format(multiprocessing.current_process().name, i))
                 face_encodings = face_recognition.face_encodings(img)
@@ -86,7 +98,7 @@ class Recogniser:
                             # print("__Camera Engine : Unknown")
                             self.names_q.put(False)
             except:
-                traceback.print_exc()
+                # traceback.print_exc()
                 print("Some problem in recognising process")
 
     def profiler(self):
@@ -121,9 +133,9 @@ class Recogniser:
 
         :return: rec process
         """
-        rec_processes=[]
+        rec_processes = []
         for x in range(3):
-            rec_process = multiprocessing.Process(target=self.engine, name="Recogniser {} ".format(x))
+            rec_process = multiprocessing.Process(target=self.engine, name="Recogniser {} ".format(x + 1))
             rec_process.start()
             rec_processes.append(rec_process)
         self.reload_thead.start()
