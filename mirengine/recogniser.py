@@ -35,6 +35,8 @@ def load_faces_from_db():
 
 class Recogniser:
     def __init__(self):
+        self.profiler_thread = threading.Thread(target=self.profiler)
+        self.reload_thead = threading.Thread(target=self.reload_faces)
         self.reload_face_sig_q = multiprocessing.Queue(maxsize=1)
         self.profile_change_to_q = multiprocessing.Queue(maxsize=1)
         self.current_front_q = multiprocessing.Queue(maxsize=1)
@@ -101,10 +103,7 @@ class Recogniser:
 
         :return: rec process
         """
-        reload_thead = threading.Thread(target=self.reload_faces)
-        profiler_thread = threading.Thread(target=self.profiler)
         rec_process = multiprocessing.Process(target=self.engine)
-        reload_thead.start()
-        profiler_thread.start()
-        # print("Returnnningnnnnnnnnnnnnnnnn prof star_recog")
+        self.reload_thead.start()
+        self.profiler_thread.start()
         return rec_process

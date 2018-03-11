@@ -1,5 +1,7 @@
 import threading
 
+import time
+
 import mirtools
 import recogniser
 
@@ -7,7 +9,8 @@ import recogniser
 def printWhenGet(q, m):
     print(">>printMan_{} in".format(m))
     while True:
-        print("--##{}____{}".format(m, q.get(block=True)))
+        t = time.time()
+        print("--##{}____{}____{}".format(m, time.time() - t, q.get(block=True)))
 
 
 if __name__ == '__main__':
@@ -25,12 +28,11 @@ if __name__ == '__main__':
     threading.Thread(target=printWhenGet, args=(profile_change_to_q, "profile")).start()
 
     rec_process.start()
-    rec_process.join()
-
 
     while True:
         s = input("say")
-        if s=="q":
+        if s == "q":
             rec_process.terminate()
             break
+    rec_process.join()
     print("________MASTER DOWN________")
