@@ -42,6 +42,8 @@ class Mirbase(metaclass=mirtools.Singleton):
                 self.users = None
                 self.update_users()
                 self.run_photo_queue_listner()
+
+                self.photo_queue_first=True
             except:
                 traceback.print_exc()
                 print("Couldn't initialize firebase")
@@ -121,16 +123,17 @@ class Mirbase(metaclass=mirtools.Singleton):
         self.get_compartment().child("notifications").child(str(l)).set(data, self.get_token())
 
     def get_users(self):
-        if self.users:
+        if not self.users:
             self.update_users()
         return self.users
 
     def update_users(self):
-        self.users = self.get_compartment().child("users").get(self.get_token())
-
-        # todo make a nice dictionary yo or list
-
-        print(self.users.val())
+        self.users=[]
+        users = self.get_compartment().child("users").get(self.get_token())
+        for x in users.val():
+            if x:
+                self.users.append(dict(x))
+        print(self.users)
 
     def upload_file(self, cloud_location, file, filename):
         storage = self.firebase.storage()
@@ -152,10 +155,14 @@ class Mirbase(metaclass=mirtools.Singleton):
         # print("event:" + str(message["event"]))  # put
         # print("path:" + str(message["path"]))  # /-K7yGTTEp7O549EzTYtI
         # print("data:" + str(message["data"]))  # {'title': 'Pyrebase', "body": "etc..."}
+        if self.photo_queue_first:
+            self.photo_queue_first=False
+            print("Guess, Who's got smarter!")
+            return
         data = message["data"]
         if data:
             # todo read directly table not data here it's chaos
-            print("Here we go, laziness or just plain inability to perform.")
+            print("Here we go, laziness or just plain inability to perform."+str(data))
             # l, f = random.choice(list(data.items()))
             # id = f['id']
             # print("OD ".format(id))
@@ -177,13 +184,8 @@ class Mirbase(metaclass=mirtools.Singleton):
 
 if __name__ == '__main__':
     m = Mirbase(multiprocessing.Queue())
-    print(m.get_user_login_details())
-    users=m.get_users().val()
-    for x in users:
-        print(x)
-
-
-    print()
+    # print(m.get_user_login_details())
+    s=m.get_users()
     # m.push_notification("ooooooooooooooooooooooo", "ssssssssssssssssAewkljflaksdjf")
     # m.run_photo_queue_listner()
     # print("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK")

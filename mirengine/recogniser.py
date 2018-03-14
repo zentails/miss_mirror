@@ -136,7 +136,7 @@ class Recogniser:
         :return: rec process
         """
         rec_processes = []
-        for x in range(3):
+        for x in range(2):
             rec_process = multiprocessing.Process(target=self.engine, name="Recogniser {} ".format(x + 1))
             rec_process.start()
             rec_processes.append(rec_process)

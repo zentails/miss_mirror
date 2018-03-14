@@ -22,12 +22,15 @@ class ReflectorWidget(FloatLayout):
         # make sure we aren't overriding any important functionality
         super(ReflectorWidget, self).__init__(**kwargs)
 
-        long_text = "-"
+        long_text = "make sure we aren't overriding any important functionality"
+        # long_text = "-"
+        self.lable_font_size='20dp'
+        self.lable_center_font_size='40dp'
 
         bx_root = BoxLayout(orientation='vertical', padding=60)
 
         w_l = BoxLayout(orientation="horizontal", size_hint=(1, 0.2))
-        wl_clock = IncrediblyCrudeClock(text_size=self.size, valign='top', halign='left', text=long_text, markup=True)
+        wl_clock = IncrediblyCrudeClock(font_size='25dp', valign='top', halign='left', markup=True)
         wl_clock.bind(size=wl_clock.setter('text_size'))
         Clock.schedule_interval(wl_clock.update, 1)
         w_l.add_widget(wl_clock)
@@ -45,11 +48,13 @@ class ReflectorWidget(FloatLayout):
         self.rt_label = Label(text_size=self.size, valign='top', halign='right', text=long_text, markup=True)
         # self.lt_label.bind(size=self.lt_label.setter('text_size'))
         self.rt_label.bind(size=self.rt_label.setter('text_size'))
+        self.rt_label.font_size=self.lable_font_size
         bl_1.add_widget(lt_bl)
         bl_1.add_widget(self.rt_label)
 
         bl_2 = BoxLayout(orientation="horizontal")
         self.ct_label = Label(valign='center', halign='right', text=long_text, markup=True)
+        self.ct_label.font_size=self.lable_center_font_size
         bl_2.add_widget(self.ct_label)
 
         bl_3 = BoxLayout(orientation="horizontal")
@@ -57,12 +62,16 @@ class ReflectorWidget(FloatLayout):
         self.lb_label = Label(text_size=self.size, valign='bottom', halign='left', text=long_text, markup=True)
         self.rb_label.bind(size=self.rb_label.setter('text_size'))
         self.lb_label.bind(size=self.lb_label.setter('text_size'))
+        self.lb_label.font_size=self.lable_font_size
+        self.rb_label.font_size=self.lable_font_size
         bl_3.add_widget(self.lb_label)
         bl_3.add_widget(self.rb_label)
 
         bl_4 = BoxLayout(orientation="horizontal", size_hint=(1, 0.1))
         self.profile_label = Label(valign='center', halign='right', text="profile")
         self.current_label = Label(valign='center', halign='right', text='current')
+        self.profile_label.font_size=self.lable_font_size
+        self.current_label.font_size=self.lable_font_size
         bl_4.add_widget(self.profile_label)
         bl_4.add_widget(self.current_label)
 

@@ -72,7 +72,7 @@ class Master():
             self.reflector_widget.set_current_text(tx)
 
     def profile_update_reflector(self, profile_id):
-        self.reflector_widget.set_left_bottom()
+        self.reflector_widget.set_left_bottom(profile_id)
 
 
 if __name__ == '__main__':
