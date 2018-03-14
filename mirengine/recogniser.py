@@ -39,9 +39,8 @@ class Recogniser:
     def __init__(self):
         self.photo_engine_thread = threading.Thread(target=self.photo_engine)
         self.profiler_thread = threading.Thread(target=self.profiler)
-        self.reload_thead = threading.Thread(target=self.reload_faces)
         self.img_for_processing_q = multiprocessing.Queue(maxsize=1)
-        self.reload_face_sig_q = multiprocessing.Queue(maxsize=1)
+        self.reload_face_sig_q = multiprocessing.Queue(maxsize=2)
         self.profile_change_to_q = multiprocessing.Queue(maxsize=1)
         self.current_front_q = multiprocessing.Queue(maxsize=1)
         self.names_q = multiprocessing.Queue(maxsize=1)
@@ -78,6 +77,7 @@ class Recogniser:
     def engine(self):
         # face_names, decoded_faces = load_faces_from_db()
         print(">>{}  in.".format(multiprocessing.current_process().name))
+        threading.Thread(target=self.reload_faces).start()
         # t = time.time()
         while True:
             try:
@@ -140,9 +140,10 @@ class Recogniser:
             rec_process = multiprocessing.Process(target=self.engine, name="Recogniser {} ".format(x + 1))
             rec_process.start()
             rec_processes.append(rec_process)
-        self.reload_thead.start()
         self.profiler_thread.start()
         self.photo_engine_thread.start()
         return rec_processes
+
+
 if __name__ == '__main__':
     load_faces_from_db()

@@ -1,6 +1,13 @@
 import os
 import random
 import urllib.request
+from io import BytesIO
+
+import face_recognition
+import numpy as np
+from PIL import Image
+from numpy import array as numpy_array
+from requests import get as requests_get
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -24,7 +31,7 @@ def get_face_cam_url():
     # url = 'http://192.168.1.105:8080/shot.jpg'  # platipus
     # url='http://192.168.43.220:8080/shot.jpg' #home
     # url='http://192.168.20.52:8080/shot.jpg'
-    url='http://192.168.43.1:8080/shot.jpg' #robin hotspot
+    url = 'http://192.168.43.1:8080/shot.jpg'  # robin hotspot
     # url='http://192.168.28.115:8080/shot.jpg' #mobile hotspot shubham
     return url
 
@@ -48,6 +55,36 @@ def get_a_name(directory_name):
     return str(rand)
 
 
+def take_profile_photo(id,reload_face_sig_q):
+    url = get_face_cam_url()
+    dropbox = dir_path + "/faces/"
+    unique_name = id. + ".jpg"
+    photo_path = dropbox + unique_name
+    print(photo_path + url)
+
+    while True:
+        response = requests_get(url)
+        img = Image.open(BytesIO(response.content))
+        img = numpy_array(img)
+        face_encodings = face_recognition.face_encodings(img)
+        print(face_encodings)
+        if len(face_encodings) > 0:
+            data=img
+            # Rescale to 0-255 and convert to uint8
+            rescaled = (255.0 / data.max() * (data - data.min())).astype(np.uint8)
+
+            im = Image.fromarray(rescaled)
+            im.save(photo_path)
+            break
+    print("Took a photo with a face " + photo_path+"Reloading...faces..")
+    reload_face_sig_q.put(1)
+    reload_face_sig_q.put(1)
+    return photo_path
+
+    # urllib.request.urlretrieve(url, photo_path)
+    # return photo_path, unique_name
+
+
 def get_photo():
     url = get_face_cam_url()
     dropbox = dir_path + "/dropbox/"
@@ -60,4 +97,4 @@ def get_photo():
 
 if __name__ == '__main__':
     # print(get_photo())
-    pass
+    take_profile_photo("1")

@@ -4,6 +4,7 @@ import threading
 import time
 
 import mirtools
+import mirbase
 import recogniser
 import reflector
 
@@ -39,14 +40,15 @@ if __name__ == '__main__':
     current_front_q = rec_obj.current_front_q
     rec_processes = rec_obj.start_recogniser()
 
-    # Reflector Part
+    # Reflector Recognition Part
     reflector_widget = reflector.ReflectorWidget()
-    # reflector_widget.set_profiler_text()
-    # profiler_text,current_text=reflector_widget.get_profiler_current_text()
-
     threading.Thread(target=profile_current_man, args=(current_front_q, reflector_widget.set_current_text)).start()
     threading.Thread(target=profile_current_man, args=(profile_change_to_q, reflector_widget.set_profiler_text)).start()
     threading.Thread(target=printMan, args=(2, "____________________________-_______________________")).start()
+
+    # Mirabase
+    mirbase_obj=mirbase.Mirbase(rec_obj.reload_face_sig_q)
+    mirbase_obj.run_photo_queue_listner()
 
     reflector.ReflectorApp(reflector_widget).run()
     print("________MASTER DOWN________")

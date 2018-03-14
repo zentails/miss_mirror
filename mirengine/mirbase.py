@@ -1,4 +1,5 @@
 import ast
+import multiprocessing
 import os
 import random
 import traceback
@@ -21,7 +22,8 @@ import mirtools
 # ______________________________________________________________
 
 class Mirbase(metaclass=mirtools.Singleton):
-    def __init__(self):
+    def __init__(self,reload_photo_sig_q):
+        self.reload_photo_sig_q = reload_photo_sig_q
         dir_path = os.path.dirname(os.path.realpath(__file__))
         config_file = dir_path + '/firebase.conf'
         with open(config_file, 'r') as f:
@@ -101,8 +103,24 @@ class Mirbase(metaclass=mirtools.Singleton):
     def get_compartment(self):
         return self.database.child("users").child(self.uid)
 
+    def push_notification(self, title, data, imgurl="None"):
+        notification = self.get_compartment().child("notifications")
+
+        val = notification.get(self.get_token()).val()
+        if val:
+            l = len(val)
+        else:
+            l = 1
+
+        data = {"tt": title,
+                "body": data,
+                "read": False}
+        self.get_compartment().child("notifications").child(str(l)).set(data, self.get_token())
+
+
     def get_users(self):
-        self.get_compartment().child("jola").push({"hola": "chhola"}, self.get_token())
+        pass
+        # self.get_compartment().child("jola").push({"hola": "chhola"}, self.get_token())
 
     def upload_file(self, cloud_location, file, filename):
         storage = self.firebase.storage()
@@ -115,6 +133,23 @@ class Mirbase(metaclass=mirtools.Singleton):
         child = "drobox/"
         return self.upload_file(child, file_path, file_name_l)
 
+    def capture_upload_profile_photo(self):
+        file_path, file_name_l = mirtools.get_photo()
+        child = "drobox/"
+        return self.upload_file(child, file_path, file_name_l)
+
+    def photo_queue_handler(self,message):
+        print("event:"+str(message["event"]))  # put
+        print("path:"+str(message["path"]))  # /-K7yGTTEp7O549EzTYtI
+        print("data:"+str(message["data"]))  # {'title': 'Pyrebase', "body": "etc..."}
+        id=message["data"]
+        print("id:{}".format(id))
+        if id:
+            mirtools.take_profile_photo(id,self.reload_photo_sig_q)
+
+    def run_photo_queue_listner(self):
+        return self.get_compartment().child("photoQueue").stream(self.photo_queue_handler,self.get_token())
+
     @staticmethod
     def get_user_login_details():
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -126,4 +161,8 @@ class Mirbase(metaclass=mirtools.Singleton):
 
 
 if __name__ == '__main__':
-    Mirbase().get_users()
+    m = Mirbase(multiprocessing.Queue())
+    print(m.get_user_login_details())
+    # m.push_notification("ooooooooooooooooooooooo", "ssssssssssssssssAewkljflaksdjf")
+    m.run_photo_queue_listner()
+    # print("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK")
