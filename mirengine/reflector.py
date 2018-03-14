@@ -22,7 +22,7 @@ class ReflectorWidget(FloatLayout):
         # make sure we aren't overriding any important functionality
         super(ReflectorWidget, self).__init__(**kwargs)
 
-        long_text = "make sure we aren't overriding any important functionality"
+        long_text = ""
         # long_text = "-"
         self.lable_font_size='20dp'
         self.lable_center_font_size='40dp'
@@ -94,13 +94,19 @@ class ReflectorWidget(FloatLayout):
         self.ct_label.text = str(web_get)
 
     def set_left_bottom(self, web_get):
-        self.lb_label.text = str(web_get)
+        if web_get:
+            self.lb_label.text = str(web_get)
+        else:
+            self.lb_label.text = ""
 
     def set_right_bottom(self, web_get):
         self.rb_label.text = str(web_get)
 
     def set_right_top(self, web_get):
-        self.rt_label.text = str(web_get)
+        if web_get:
+            self.rt_label.text = str(web_get)
+        else:
+            self.rt_label.text = ""
 
     def set_profiler_text(self, new_profile_name):
         self.profile_label.text = str(new_profile_name)

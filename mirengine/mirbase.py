@@ -42,8 +42,10 @@ class Mirbase(metaclass=mirtools.Singleton):
                 self.users = None
                 self.update_users()
                 self.run_photo_queue_listner()
+                self.run_new_user_listner()
 
-                self.photo_queue_first=True
+                self.photo_queue_first = True
+                self.new_user_first = True
             except:
                 traceback.print_exc()
                 print("Couldn't initialize firebase")
@@ -128,7 +130,7 @@ class Mirbase(metaclass=mirtools.Singleton):
         return self.users
 
     def update_users(self):
-        self.users=[]
+        self.users = []
         users = self.get_compartment().child("users").get(self.get_token())
         for x in users.val():
             if x:
@@ -151,23 +153,31 @@ class Mirbase(metaclass=mirtools.Singleton):
         child = "drobox/"
         return self.upload_file(child, file_path, file_name_l)
 
+    def new_user_handler(self, message):
+        if self.new_user_first:
+            self.new_user_first = False
+            print("Guess, Who's got smarter!")
+            return
+        data = message["data"]
+        if data:
+            print("Got new User : {}".format(str(data)))
+            self.update_users()
+
     def photo_queue_handler(self, message):
         # print("event:" + str(message["event"]))  # put
         # print("path:" + str(message["path"]))  # /-K7yGTTEp7O549EzTYtI
         # print("data:" + str(message["data"]))  # {'title': 'Pyrebase', "body": "etc..."}
         if self.photo_queue_first:
-            self.photo_queue_first=False
+            self.photo_queue_first = False
             print("Guess, Who's got smarter!")
             return
         data = message["data"]
         if data:
-            # todo read directly table not data here it's chaos
-            print("Here we go, laziness or just plain inability to perform."+str(data))
-            # l, f = random.choice(list(data.items()))
-            # id = f['id']
-            # print("OD ".format(id))
-            # if id:
-            #     mirtools.take_profile_photo(id, self.reload_photo_sig_q)
+            # done[] read directly table not data here it's chaos
+            # print("Here we go, laziness or just plain inability to perform."+str(data))
+            id = data['id']
+            if id:
+                mirtools.take_profile_photo(id, self.reload_photo_sig_q)
 
     def run_photo_queue_listner(self):
         return self.get_compartment().child("photoQueue").stream(self.photo_queue_handler, self.get_token())
@@ -181,11 +191,15 @@ class Mirbase(metaclass=mirtools.Singleton):
     def get_firebase_user(self):
         return self.user
 
+    def run_new_user_listner(self):
+        return self.get_compartment().child("users").stream(self.new_user_handler, self.get_token())
+
 
 if __name__ == '__main__':
     m = Mirbase(multiprocessing.Queue())
     # print(m.get_user_login_details())
-    s=m.get_users()
+    s = m.get_users()
+    print(mirtools.get_name(s, 1))
     # m.push_notification("ooooooooooooooooooooooo", "ssssssssssssssssAewkljflaksdjf")
     # m.run_photo_queue_listner()
     # print("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK")
