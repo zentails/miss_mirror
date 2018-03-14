@@ -1,25 +1,44 @@
-import threading
+from kivy.app import App
+from kivy.uix.widget import Widget
+from kivy.uix.button import Button
+from kivy.uix.boxlayout import BoxLayout
+from kivy.properties import ListProperty
 
-import time
+
+class RootWidget(BoxLayout):
+
+    def __init__(self, **kwargs):
+        super(RootWidget, self).__init__(**kwargs)
+        self.add_widget(Button(text='btn 1'))
+        cb = CustomBtn()
+        cb.bind(pressed=self.btn_pressed)
+        self.add_widget(cb)
+        self.add_widget(Button(text='btn 2'))
+
+    def btn_pressed(self, instance, pos):
+        print('pos: printed from root widget: {pos}'.format(pos=pos))
 
 
-class Weather(threading.Thread):
-    def __init__(self):
-        super().__init__()
-        self.tx = "default"
+class CustomBtn(Widget):
+    pressed = ListProperty([0, 0])
 
-    def run(self):
-        i = 0
-        while True:
-            print(str(i + 1) + self.tx)
-            time.sleep(1)
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            self.pressed = touch.pos
+            # we consumed the touch. return False here to propagate
+            # the touch further to the children.
+            return True
+        return super(CustomBtn, self).on_touch_down(touch)
 
-    def set(self, t):
-        self.tx = t
+    def on_pressed(self, instance, pos):
+        print('pressed at {pos}'.format(pos=pos))
+
+
+class TestApp(App):
+
+    def build(self):
+        return RootWidget()
 
 
 if __name__ == '__main__':
-    w=Weather()
-    w.start()
-    time.sleep(3)
-    w.set("wllah")
+    TestApp().run()

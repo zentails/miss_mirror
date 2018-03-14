@@ -31,7 +31,7 @@ def get_face_cam_url():
     # url = 'http://192.168.1.105:8080/shot.jpg'  # platipus
     # url='http://192.168.43.220:8080/shot.jpg' #home
     # url='http://192.168.20.52:8080/shot.jpg'
-    url = 'http://192.168.43.1:8080/shot.jpg'  # robin hotspot
+    # url = 'http://192.168.43.1:8080/shot.jpg'  # robin hotspot
     # url='http://192.168.28.115:8080/shot.jpg' #mobile hotspot shubham
     return url
 
@@ -55,12 +55,15 @@ def get_a_name(directory_name):
     return str(rand)
 
 
-def take_profile_photo(id,reload_face_sig_q):
+def take_profile_photo(id_photo, reload_face_sig_q):
     url = get_face_cam_url()
     dropbox = dir_path + "/faces/"
-    unique_name = id. + ".jpg"
+    unique_name = str(id_photo) + ".jpg"
     photo_path = dropbox + unique_name
     print(photo_path + url)
+
+    if os.path.isfile(photo_path):
+        return
 
     while True:
         response = requests_get(url)
@@ -69,14 +72,14 @@ def take_profile_photo(id,reload_face_sig_q):
         face_encodings = face_recognition.face_encodings(img)
         print(face_encodings)
         if len(face_encodings) > 0:
-            data=img
+            data = img
             # Rescale to 0-255 and convert to uint8
             rescaled = (255.0 / data.max() * (data - data.min())).astype(np.uint8)
 
             im = Image.fromarray(rescaled)
             im.save(photo_path)
             break
-    print("Took a photo with a face " + photo_path+"Reloading...faces..")
+    print("Took a photo with a face " + photo_path + "Reloading...faces..")
     reload_face_sig_q.put(1)
     reload_face_sig_q.put(1)
     return photo_path
@@ -96,5 +99,6 @@ def get_photo():
 
 
 if __name__ == '__main__':
+    pass
     # print(get_photo())
-    take_profile_photo("1")
+    # take_profile_photo("1")

@@ -1,4 +1,6 @@
 from kivy.app import App
+from kivy.uix.anchorlayout import AnchorLayout
+from kivy.uix.label import Label
 from kivy.uix.widget import Widget
 from kivy.graphics import Color, Line
 from kivy.uix.floatlayout import FloatLayout
@@ -19,7 +21,6 @@ kv = '''
 
 <MyClockWidget>:
     face: face
-    ticks: ticks
     FloatLayout:
         id: face
         size_hint: None, None
@@ -55,9 +56,6 @@ kv = '''
             i: 11
         ClockNumber:
             i: 12
-    Ticks:
-        id: ticks
-        r: min(root.size)*0.9/2
 '''
 Builder.load_string(kv)
 
@@ -67,8 +65,14 @@ class MyClockWidget(FloatLayout):
 
 
 class Ticks(Widget):
-    def __init__(self, **kwargs):
+    def __init__(self, root, **kwargs):
         super(Ticks, self).__init__(**kwargs)
+        # print(root.size)
+        self.root=root
+        self.r = min(root.size)
+        self.center_x = root.center_x
+        self.center_y = root.center_y
+        # print(self.r)
         self.bind(pos=self.update_clock)
         self.bind(size=self.update_clock)
 
@@ -76,6 +80,14 @@ class Ticks(Widget):
         self.canvas.clear()
         with self.canvas:
             time = datetime.datetime.now()
+            # print("TICKS Center :{} {}".format(self.center_x,self.center_y))
+            # print("Root Center :{} {}".format(self.root.center_x,self.root.center_y))
+
+            # Here this mortals I'm a DemiGod, Atleast feeling like right now. :mojo jojo laughs:
+
+            self.r = min(self.root.size)*0.9/2
+            self.set_center_x(self.root.center_x)
+            self.set_center_y(self.root.center_y)
             Color(0.2, 0.5, 0.2)
             Line(points=[self.center_x, self.center_y, self.center_x + 0.8 * self.r * sin(pi / 30 * time.second),
                          self.center_y + 0.8 * self.r * cos(pi / 30 * time.second)], width=1, cap="round")
@@ -91,9 +103,11 @@ class Ticks(Widget):
 class MyClockApp(App):
     def build(self):
         clock = MyClockWidget()
-        Clock.schedule_interval(clock.ticks.update_clock, 1)
+        ticks = Ticks(clock)
+        clock.add_widget(ticks)
+        Clock.schedule_interval(ticks.update_clock, 1)
         return clock
 
 
-# if __name__ == '__main__':
-    # MyClockApp().run()
+if __name__ == '__main__':
+    MyClockApp().run()
