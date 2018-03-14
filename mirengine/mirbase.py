@@ -32,16 +32,14 @@ class Mirbase(metaclass=mirtools.Singleton):
             try:
                 self.firebase = pyrebase.initialize_app(config)
                 self.auth = self.firebase.auth()
+                self.database = self.firebase.database()
+                self.storage = self.firebase.storage()
                 self.user = self.generate_firebase_user()
+                self.token = self.user['idToken']
+                self.uid = self.user['localId']
             except:
                 traceback.print_exc()
                 print("Couldn't initialize firebase")
-
-    def testme(self, take):
-        self.take = take
-
-    def tessteme(self):
-        print(self.take)
 
     # Essential for setup
 
@@ -95,6 +93,16 @@ class Mirbase(metaclass=mirtools.Singleton):
                 print("couldn't create user ")
 
     # Mirbase Tools
+    def get_token(self):
+        if int(self.user['expiresIn']) < 60:
+            self.token = self.auth.refresh(refresh_token=self.user['refreshToken'])['idToken']
+        return self.token
+
+    def get_compartment(self):
+        return self.database.child("users").child(self.uid)
+
+    def get_users(self):
+        self.get_compartment().child("jola").push({"hola": "chhola"}, self.get_token())
 
     def upload_file(self, cloud_location, file, filename):
         storage = self.firebase.storage()
@@ -118,13 +126,4 @@ class Mirbase(metaclass=mirtools.Singleton):
 
 
 if __name__ == '__main__':
-    pass
-    # print(get_user_login_details())
-    # print(capture_upload_photo())
-    # dir_path = os.path.dirname(os.path.realpath(__file__))
-    # file_name = 'emma.jpg'
-    # emma = dir_path + "/" + file_name
-    # print(emma)
-    # upload_file(emma, file_name)
-    # user=
-    # print(user)
+    Mirbase().get_users()

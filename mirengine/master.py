@@ -5,6 +5,7 @@ import time
 
 import mirtools
 import recogniser
+import reflector
 
 
 def printMan(m, t):
@@ -13,41 +14,39 @@ def printMan(m, t):
         time.sleep(m)
 
 
-def printWhenGetCurrent(q):
-    print(">>printManCurrent in")
-    # a = 1
+def profile_current_man(q, w):
+    print(">>Profile Current Man in")
     while True:
-        # t = time.time()
-        print("--##________{}________________".format(q.get(block=True)))
-        # t = a + (time.time() - t)
-        # a = t / 2
+        tx = q.get(block=True)
+        print("--##------------>{}".format(tx))
+        w(tx)
 
 
-def printWhenGetProfile(q):
-    print(">>printManProfile in")
-    while True:
-        print("--##------------>{}".format(q.get(block=True)))
+def reflectorRun(widget):
+    app = reflector.ReflectorApp(widget)
+    reflector_thread = threading.Thread(target=app.run)
+    reflector_thread.start()
+    return reflector_thread
 
 
 if __name__ == '__main__':
     print("________MASTER UP________")
-    rec_obj = recogniser.Recogniser()
 
+    # Faace Reccogniser Part
+    rec_obj = recogniser.Recogniser()
     reload_face_sig_q = rec_obj.reload_face_sig_q
     profile_change_to_q = rec_obj.profile_change_to_q
     current_front_q = rec_obj.current_front_q
-
     rec_processes = rec_obj.start_recogniser()
-    # print(mirtools.get_photo())
 
-    threading.Thread(target=printWhenGetCurrent, args=(current_front_q,)).start()
-    threading.Thread(target=printWhenGetProfile, args=(profile_change_to_q,)).start()
+    # Reflector Part
+    reflector_widget = reflector.ReflectorWidget()
+    # reflector_widget.set_profiler_text()
+    # profiler_text,current_text=reflector_widget.get_profiler_current_text()
+
+    threading.Thread(target=profile_current_man, args=(current_front_q, reflector_widget.set_current_text)).start()
+    threading.Thread(target=profile_current_man, args=(profile_change_to_q, reflector_widget.set_profiler_text)).start()
     threading.Thread(target=printMan, args=(2, "____________________________-_______________________")).start()
 
-    # rec_process.start()
-    s = input("say")
-    if s == "q":
-        for rec_process in rec_processes:
-            rec_process.terminate()
-        multiprocessing.current_process().terminate()
+    reflector.ReflectorApp(reflector_widget).run()
     print("________MASTER DOWN________")

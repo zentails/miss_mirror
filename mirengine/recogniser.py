@@ -23,6 +23,7 @@ def load_faces_from_db():
     print("Loading faces from database.")
     for file_ in os.listdir(directory):
         filename = os.fsdecode(file_)
+        # print(filename)
         if filename.endswith(".jpg"):
             img_full_path = directory_string + '/' + filename
             # Load the jpg file into a numpy array
@@ -49,6 +50,7 @@ class Recogniser:
     def photo_engine(self):
         print(">>Photo Engine in")
         url_text = mirtools.get_face_cam_url()
+        print("Using IP {}".format(url_text))
         i = 0
         while True:
             try:
@@ -142,3 +144,5 @@ class Recogniser:
         self.profiler_thread.start()
         self.photo_engine_thread.start()
         return rec_processes
+if __name__ == '__main__':
+    load_faces_from_db()
