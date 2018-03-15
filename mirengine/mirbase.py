@@ -44,6 +44,8 @@ class Mirbase(metaclass=mirtools.Singleton):
                 self.run_photo_queue_listner()
                 self.run_new_user_listner()
 
+                self.master_obj = None
+
                 self.photo_queue_first = True
                 self.new_user_first = True
             except:
@@ -96,10 +98,15 @@ class Mirbase(metaclass=mirtools.Singleton):
                 filek.write(str(cred[0] + "\n" + cred[1]))
                 filek.flush()
                 filek.close()
+
+                if self.master_obj:
+                    self.master_obj.show_log("We've created a userid and password for you",30,False)
+
                 return self.auth.sign_in_with_email_and_password(email_id, password)
             except:
                 traceback.print_exc()
                 print("couldn't create user ")
+
 
     # Mirbase Tools
     def get_token(self):

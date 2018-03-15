@@ -3,6 +3,7 @@ import threading
 
 import time
 
+import gasdetect
 import mirtools
 import mirbase
 import recogniser
@@ -43,10 +44,21 @@ class Master():
         threading.Thread(target=printMan).start()
         self.rec_obj.start_recogniser()
 
+        # Smoke Detction
+        gas_detector_obj = gasdetect.GasDetector(self)
+        gas_detector_obj.run_detector()
+
         reflector.ReflectorApp(self.reflector_widget).run()
 
     def update_reflector(self, user):
         print(user)
+        self.reflector_widget.set_right_bottom(self.web_quote)
+        if not user:
+            print("returning")
+            self.reflector_widget.set_left_bottom(None)
+            self.reflector_widget.set_right_top(None)
+            return
+        print("updating")
         pref = user['preferences']
         if pref['news']:
             self.reflector_widget.set_left_bottom(self.web_news)
@@ -56,6 +68,11 @@ class Master():
             self.reflector_widget.set_right_top(self.web_weather)
         else:
             self.reflector_widget.set_right_top(None)
+
+    def show_log(self, text, time_hold=8, send_notification=False):
+        threading.Thread(target=self.reflector_widget.log_man, args=(text, time_hold)).start()
+        if send_notification:
+            self.mirbase_obj.push_notification("Warning", text)
 
     def dump_delete_me(self):
         print("?>>>>dump_delete man in ")
@@ -70,17 +87,25 @@ class Master():
         print(">>Profile Update Man in")
         while True:
             id = self.profile_change_to_q.get(block=True)
-            user=mirtools.get_name(self.mirbase_obj.get_users(),id)
-            name=user['username']
-            print("--##-{}----------->{}".format(id,name))
+            user = mirtools.get_name(self.mirbase_obj.get_users(), id)
+            if user:
+                name = user['username']
+                self.update_reflector(user)
+            else:
+                name = "Stranger"
+                self.update_reflector(user)
+                self.mirbase_obj.push_notification("Stranger Detected", "A stranger has been detected",
+                                                   self.mirbase_obj.capture_upload_photo())
+            print("--##-{}----------->{}".format(id, name))
             self.reflector_widget.set_profiler_text(name)
             self.reflector_widget.greet_master(name)
-            self.update_reflector(user)
 
     def current_update_man(self):
         print(">>Current Update Man in")
         while True:
             tx = self.current_front_q.get(block=True)
+            if not tx:
+                tx = "Stranger"
             print("--##------------>{}".format(tx))
             self.reflector_widget.set_current_text(tx)
 

@@ -84,13 +84,13 @@ class WebWeather(WebGet):
                                                                                               temp_symbol,
                                                                                               today,
                                                                                               humidity))
-        weather = ['temp:' + str(temp),
-                   'temp_symbol:' + temp_symbol,
+        weather = ['temp:' + str(temp)+temp_symbol,
                    'city:' + str(city),
                    'main:' + str(main),
                    'today:' + str(today),
                    'humidity:' + str(humidity)]
         return weather
+
 
 if __name__ == '__main__':
     # print(WebWeather())
